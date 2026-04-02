@@ -26,6 +26,7 @@ It demonstrates how to move from model training to deployment using modern MLOps
 ---
 
 ## Project Structure
+```text
 breast_cancer_demo/
 ├── app.py
 ├── train.py
@@ -33,12 +34,14 @@ breast_cancer_demo/
 ├── requirements.txt
 ├── Dockerfile
 └── README.md
+```
 
 ---
 
 ## How to Run
 
 ### 1. Train the model
+This creates `model.pkl`.
 ```bash
 python train.py
 ```
