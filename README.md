@@ -13,6 +13,7 @@ It demonstrates how to move from model training to deployment using modern MLOps
 - Docker containerization
 - MLflow experiment tracking
 - Prediction logging (audit trail)
+- Basic monitoring (request count, error count, average latency)
 
 ---
 
@@ -27,7 +28,7 @@ It demonstrates how to move from model training to deployment using modern MLOps
 
 ## Project Structure
 ```text
-breast_cancer_demo/
+breast_cancer_monitoring/
 ├── app.py
 ├── train.py
 ├── model.pkl
@@ -35,6 +36,8 @@ breast_cancer_demo/
 ├── Dockerfile
 └── README.md
 ```
+
+Note: model.pkl is generated after running train.py and is not tracked in Git.
 
 ---
 
@@ -53,15 +56,36 @@ uvicorn app:app --reload
 
 ### 3. Run with Docker
 ```bash
-docker build -t breast-cancer-api .
-docker run -p 8080:8080 breast-cancer-api
+docker build -t breast-cancer-monitoring .
+docker run -p 8081:8080 breast-cancer-monitoring
 ```
 
 ## API Endpoints
 - GET / → basic check
 - GET /health → system health
+- GET /metrics → monitoring metrics
 - GET /version → model version info
 - POST /predict → prediction
+
+## Monitoring
+
+This project includes basic monitoring capabilities to observe system behavior in real time.
+
+### Features
+- Request count tracking
+- Error tracking
+- Average latency measurement
+
+### Endpoint
+GET /metrics
+
+### Example Response
+```json
+{
+  "total_requests": 5,
+  "errors": 0,
+  "average_latency": 0.12
+}
 
 ## Example Request
 ```JSON
@@ -87,7 +111,9 @@ This project demonstrates:
 - End-to-end ML workflow
 - Deployment of ML models
 - API-based inference
-- Logging for traceability (important for AI governance)
+- Logging for traceability
+- Basic monitoring for observability
+
 
 ## Future Improvements
 - Image-based model (medical imaging)
