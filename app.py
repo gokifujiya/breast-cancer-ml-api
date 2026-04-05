@@ -5,6 +5,11 @@ import joblib
 import numpy as np
 import logging
 from datetime import datetime
+import time
+
+request_count = 0
+error_count = 0
+total_latency = 0
 
 app = FastAPI(title="Breast Cancer Prediction API")
 
@@ -52,6 +57,17 @@ def health():
         raise HTTPException(status_code=500, detail=f"Model not loaded: {load_error}")
     return {"status": "ok"}
 
+# 🔹 Metrics
+
+@app.get("/metrics")
+def metrics():
+    avg_latency = total_latency / request_count if request_count > 0 else 0
+
+    return {
+        "total_requests": request_count,
+        "errors": error_count,
+        "average_latency": avg_latency
+    }
 
 # 🔹 Version (NEW)
 @app.get("/version")
@@ -64,29 +80,34 @@ def version():
 
 
 # 🔹 Prediction endpoint
-@app.post("/predict", response_model=PredictionOutput)
+@app.post("/predict")
 def predict(input_data: PredictionInput):
-    if model is None:
-        raise HTTPException(status_code=500, detail=f"Model not loaded: {load_error}")
+    global request_count, error_count, total_latency
 
-    if len(input_data.features) != 30:
-        raise HTTPException(
-            status_code=400,
-            detail="Expected exactly 30 input features."
+    start_time = time.time()
+
+    try:
+        x = np.array(input_data.features).reshape(1, -1)
+
+        pred = int(model.predict(x)[0])
+        prob = float(model.predict_proba(x)[0][0])
+
+        latency = time.time() - start_time
+
+        request_count += 1
+        total_latency += latency
+
+        logging.info(
+            f"input={input_data.features}, pred={pred}, prob={prob}, latency={latency}"
         )
 
-    x = np.array(input_data.features).reshape(1, -1)
+        return {
+            "prediction": pred,
+            "probability_malignant": prob
+        }
 
-    pred = int(model.predict(x)[0])
-    prob = float(model.predict_proba(x)[0][0])
+    except Exception as e:
+        error_count += 1
+        raise HTTPException(status_code=500, detail=str(e))
 
-    # 🔥 Logging (creates predictions.log automatically)
-    logging.info(
-        f"input={input_data.features}, prediction={pred}, probability={prob}"
-    )
-
-    return PredictionOutput(
-        prediction=pred,
-        probability_malignant=prob
-    )
 
