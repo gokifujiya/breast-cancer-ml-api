@@ -86,6 +86,7 @@ GET /metrics
   "errors": 0,
   "average_latency": 0.12
 }
+```
 
 ## Example Request
 ```JSON
